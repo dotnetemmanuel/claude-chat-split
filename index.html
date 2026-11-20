@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Chattdelare</title>
+<title>Claude Chat Split</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -63,8 +63,8 @@ pre{overflow:auto;max-height:52vh;margin:0;padding:14px;background:var(--bg);bor
 </head>
 <body>
 <header class="band">
-  <h1>Dela upp din Claude-export</h1>
-  <p class="lede">Välj <b>conversations.json</b> eller hela export-<b>.zip</b>. Allt läses lokalt i webbläsaren och ingenting laddas upp. Välj sedan en chatt och spara den som JSON eller Markdown, eller spara alla som en zip med en fil per chatt.</p>
+  <h1>Split your Claude export</h1>
+  <p class="lede">Pick <b>conversations.json</b> or the whole export <b>.zip</b>. Everything is read locally in your browser and nothing is uploaded. Then pick a chat and save it as Markdown or JSON, or save them all as a zip with one file per chat.</p>
 </header>
 
 <main class="band" style="padding-top:0">
@@ -77,8 +77,8 @@ pre{overflow:auto;max-height:52vh;margin:0;padding:14px;background:var(--bg);bor
       <path d="M2 30h80v22a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z" fill="var(--teal)"/>
       <rect x="32" y="38" width="20" height="5" rx="2.5" fill="var(--paper)"/>
     </svg>
-    <strong>Släpp exportfilen här</strong>
-    <small>eller tryck för att välja. Exporten skapar du under Inställningar › Integritet › Exportera data, på webben eller i Claude Desktop.</small>
+    <strong>Drop the export file here</strong>
+    <small>or click to choose one. Create the export under Settings › Privacy › Export data, on the web or in Claude Desktop.</small>
     <input id="file" type="file" accept=".json,.zip,application/json,application/zip">
     <span class="note" id="loadnote" role="status"></span>
   </label>
@@ -86,34 +86,34 @@ pre{overflow:auto;max-height:52vh;margin:0;padding:14px;background:var(--bg);bor
   <section class="app" id="app">
     <aside class="side">
       <div class="tools">
-        <input id="q" type="search" placeholder="Sök på titel eller innehåll" aria-label="Sök chattar">
-        <div class="meta"><span><b id="count">0</b> chattar</span><span id="total"></span>
-          <button id="other" style="margin-left:auto;min-height:36px;padding:0 10px;font-size:13px">Byt fil</button></div>
+        <input id="q" type="search" placeholder="Search titles and content" aria-label="Search chats">
+        <div class="meta"><span><b id="count">0</b> chats</span><span id="total"></span>
+          <button id="other" style="margin-left:auto;min-height:36px;padding:0 10px;font-size:13px">Change file</button></div>
       </div>
       <div class="list" id="list"></div>
     </aside>
 
     <article class="view" id="view">
-      <h2 id="vt">Välj en chatt</h2>
+      <h2 id="vt">Pick a chat</h2>
       <div class="facts" id="vf"></div>
       <div class="row">
         <div class="seg" role="group" aria-label="Format">
           <button id="fmtMd" aria-pressed="true">Markdown</button>
           <button id="fmtJson" aria-pressed="false">JSON</button>
         </div>
-        <label class="opt"><input type="checkbox" id="pre" checked> Inledande instruktion till Claude</label>
+        <label class="opt"><input type="checkbox" id="pre" checked> Opening note to Claude</label>
       </div>
       <div class="row">
-        <button class="primary" id="save" disabled>Spara chatten</button>
-        <button id="copy" disabled>Kopiera</button>
-        <button id="all" disabled>Spara alla (.zip)</button>
+        <button class="primary" id="save" disabled>Save chat</button>
+        <button id="copy" disabled>Copy</button>
+        <button id="all" disabled>Save all (.zip)</button>
       </div>
-      <pre id="out" aria-label="Förhandsvisning"></pre>
+      <pre id="out" aria-label="Preview"></pre>
       <p class="note" id="note" role="status"></p>
     </article>
   </section>
 </main>
-<footer class="band foot">Fältnamnen följer Claudes exportformat (name, chat_messages, sender, content). Om en chatt ser tom ut kan formatet ha ändrats; JSON-läget visar alltid rådata.</footer>
+<footer class="band foot">Field names follow the Claude export format (name, chat_messages, sender, content). If a chat looks empty the format may have changed; JSON mode always shows the raw data.</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==" crossorigin="anonymous"></script>
 <script>
@@ -123,27 +123,27 @@ let convs=[],cur=null,fmt='md';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const day=d=>d?String(d).slice(0,10):'';
 const stamp=d=>d?String(d).slice(0,16).replace('T',' '):'';
-const slug=s=>(s||'namnlos').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'namnlos';
+const slug=s=>(s||'untitled').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'untitled';
 const kb=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' kB';
 
 function msgText(m){
   if(Array.isArray(m.content)&&m.content.length){
-    const p=m.content.map(c=>c.type==='text'?c.text:c.type==='tool_use'?`*[verktyg: ${c.name||'okänt'}]*`:'').filter(Boolean);
+    const p=m.content.map(c=>c.type==='text'?c.text:c.type==='tool_use'?`*[tool: ${c.name||'unknown'}]*`:'').filter(Boolean);
     if(p.length)return p.join('\n\n');
   }
   return m.text||'';
 }
 function toMd(c){
   const out=[];
-  if($('pre').checked)out.push('> Det här är en exporterad konversation från mitt tidigare Claude-konto. Läs den och fortsätt där vi slutade.\n');
-  out.push(`# ${c.name||'Namnlös chatt'}\n`,`Skapad ${stamp(c.created_at)} · uppdaterad ${stamp(c.updated_at)}\n`);
+  if($('pre').checked)out.push('> This is an exported conversation from my previous Claude account. Read it and continue where we left off.\n');
+  out.push(`# ${c.name||'Untitled chat'}\n`,`Created ${stamp(c.created_at)} · updated ${stamp(c.updated_at)}\n`);
   for(const m of c.chat_messages||[]){
-    out.push(`---\n\n### ${m.sender==='human'?'Jag':'Claude'} · ${stamp(m.created_at)}\n`,msgText(m));
+    out.push(`---\n\n### ${m.sender==='human'?'Me':'Claude'} · ${stamp(m.created_at)}\n`,msgText(m));
     for(const a of m.attachments||[]){
-      out.push(`\n**Bifogad fil: ${a.file_name||'fil'}**`);
+      out.push(`\n**Attached file: ${a.file_name||'file'}**`);
       if(a.extracted_content)out.push('\n````\n'+a.extracted_content+'\n````');
     }
-    for(const f of m.files||[])out.push(`\n*[fil som inte ingår i exporten: ${f.file_name||'okänd'}]*`);
+    for(const f of m.files||[])out.push(`\n*[file not included in the export: ${f.file_name||'unknown'}]*`);
     out.push('');
   }
   return out.join('\n');
@@ -155,23 +155,23 @@ function list(){
   const q=$('q').value.trim().toLowerCase();
   const rows=convs.filter(c=>!q||c._hay.includes(q));
   $('count').textContent=rows.length;
-  $('list').innerHTML=rows.length?rows.map(c=>`<button class="card${c===cur?' on':''}" data-i="${c._i}"><span class="t">${esc(c.name||'Namnlös chatt')}</span><span class="s">${day(c.updated_at)} · ${c._n} meddelanden · ~${c._tok.toLocaleString('sv')} tokens</span></button>`).join(''):'<p class="empty">Inga chattar matchar sökningen.</p>';
+  $('list').innerHTML=rows.length?rows.map(c=>`<button class="card${c===cur?' on':''}" data-i="${c._i}"><span class="t">${esc(c.name||'Untitled chat')}</span><span class="s">${day(c.updated_at)} · ${c._n} messages · ~${c._tok.toLocaleString('en')} tokens</span></button>`).join(''):'<p class="empty">No chats match the search.</p>';
 }
 function show(){
   if(!cur)return;
-  $('vt').textContent=cur.name||'Namnlös chatt';
-  $('vf').innerHTML=`<span>Skapad <b>${day(cur.created_at)}</b></span><span>Uppdaterad <b>${day(cur.updated_at)}</b></span><span><b>${cur._n}</b> meddelanden</span><span>~<b>${cur._tok.toLocaleString('sv')}</b> tokens</span>`;
+  $('vt').textContent=cur.name||'Untitled chat';
+  $('vf').innerHTML=`<span>Created <b>${day(cur.created_at)}</b></span><span>Updated <b>${day(cur.updated_at)}</b></span><span><b>${cur._n}</b> messages</span><span>~<b>${cur._tok.toLocaleString('en')}</b> tokens</span>`;
   const t=render(cur);
-  $('out').textContent=t.length>60000?t.slice(0,60000)+'\n\n… (förhandsvisningen är avkortad, filen blir komplett)':t;
+  $('out').textContent=t.length>60000?t.slice(0,60000)+'\n\n… (preview cut short, the saved file is complete)':t;
   $('save').disabled=$('copy').disabled=false;
-  $('save').textContent=`Spara .${fmt==='md'?'md':'json'}`;
+  $('save').textContent=`Save .${fmt==='md'?'md':'json'}`;
   note('');
 }
 function note(t,k){$('note').textContent=t;$('note').className='note'+(k?' '+k:'')}
 
 function load(data){
   let arr=Array.isArray(data)?data:(data&&Array.isArray(data.conversations)?data.conversations:null);
-  if(!arr)throw new Error('Hittade ingen lista med chattar i filen.');
+  if(!arr)throw new Error('No list of chats found in the file.');
   convs=arr.map((c,i)=>{
     const msgs=c.chat_messages||[];
     const txt=msgs.map(msgText).join(' ');
@@ -183,18 +183,18 @@ function load(data){
   $('all').disabled=!convs.length;list();
 }
 async function readFile(f){
-  $('loadnote').textContent='Läser '+f.name+' …';$('loadnote').className='note';
+  $('loadnote').textContent='Reading '+f.name+' …';$('loadnote').className='note';
   try{
     let text;
     if(/\.zip$/i.test(f.name)){
-      if(!window.JSZip)throw new Error('Zip-stödet laddades inte. Packa upp och välj conversations.json i stället.');
+      if(!window.JSZip)throw new Error('Zip support did not load. Unzip it and pick conversations.json instead.');
       const z=await JSZip.loadAsync(f);
       const e=Object.values(z.files).find(x=>/(^|\/)conversations\.json$/i.test(x.name));
-      if(!e)throw new Error('Ingen conversations.json i zip-filen.');
+      if(!e)throw new Error('No conversations.json in the zip file.');
       text=await e.async('string');
     }else text=await f.text();
     load(JSON.parse(text));
-  }catch(err){$('loadnote').textContent=err.message||'Kunde inte läsa filen.';$('loadnote').className='note err'}
+  }catch(err){$('loadnote').textContent=err.message||'Could not read the file.';$('loadnote').className='note err'}
 }
 
 function save(name,data){
@@ -202,7 +202,7 @@ function save(name,data){
   const a=Object.assign(document.createElement('a'),{href:url,download:name});
   document.body.append(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),10000);
-  note('Sparad: '+name,'ok');
+  note('Saved: '+name,'ok');
 }
 
 $('file').addEventListener('change',e=>{const f=e.target.files[0];if(f)readFile(f)});
@@ -219,14 +219,14 @@ $('fmtJson').addEventListener('click',()=>setFmt('json'));
 $('pre').addEventListener('change',show);
 $('save').addEventListener('click',()=>cur&&save(fname(cur,fmt==='md'?'md':'json'),render(cur)));
 $('copy').addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText(render(cur));note('Kopierat till urklipp.','ok')}catch{note('Kopieringen nekades av webbläsaren.','err')}
+  try{await navigator.clipboard.writeText(render(cur));note('Copied to the clipboard.','ok')}catch{note('The browser blocked copying.','err')}
 });
 $('all').addEventListener('click',async()=>{
-  if(!window.JSZip){note('Zip-stödet laddades inte.','err');return}
-  note('Packar '+convs.length+' chattar …');
+  if(!window.JSZip){note('Zip support did not load.','err');return}
+  note('Packing '+convs.length+' chats …');
   const z=new JSZip(),ext=fmt==='md'?'md':'json',used=new Set();
   for(const c of convs){let n=fname(c,ext);while(used.has(n))n=n.replace('.'+ext,'_.'+ext);used.add(n);z.file(n,render(c))}
-  save(`claude-chattar-${ext}.zip`,await z.generateAsync({type:'blob',compression:'DEFLATE'}));
+  save(`claude-chats-${ext}.zip`,await z.generateAsync({type:'blob',compression:'DEFLATE'}));
 });
 }
 </script>
