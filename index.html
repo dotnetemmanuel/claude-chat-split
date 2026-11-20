@@ -126,9 +126,24 @@ const stamp=d=>d?String(d).slice(0,16).replace('T',' '):'';
 const slug=s=>(s||'untitled').normalize('NFKD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'untitled';
 const kb=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' kB';
 
+function fence(body,path){
+  const longest=Math.max(2,...(String(body).match(/`+/g)||[]).map(s=>s.length));
+  const f='`'.repeat(longest+1),lang=(/\.([a-z0-9]+)$/i.exec(path||'')||[])[1]||'';
+  return `${f}${lang}\n${body}\n${f}`;
+}
+function toolText(c){
+  const i=c.input||{},path=i.path||i.file_path||'';
+  if((c.name==='create_file'||c.name==='Write')&&(i.file_text??i.content)!=null)
+    return `**Claude created ${path?'`'+path+'`':'a file'}**\n\n`+fence(i.file_text??i.content,path);
+  if((c.name==='str_replace'||c.name==='Edit')&&(i.new_str??i.new_string)!=null)
+    return `**Claude edited ${path?'`'+path+'`':'a file'}${i.replace_all?' (every occurrence)':''}**\n\nReplaced:\n\n`+fence(i.old_str??i.old_string??'',path)+'\n\nWith:\n\n'+fence(i.new_str??i.new_string,path);
+  if(c.name==='visualize:show_widget'&&i.widget_code)
+    return `**Claude showed a widget${i.title?': '+i.title:''}**\n\n`+fence(i.widget_code,'w.html');
+  return `*[tool: ${c.name||'unknown'}]*`;
+}
 function msgText(m){
   if(Array.isArray(m.content)&&m.content.length){
-    const p=m.content.map(c=>c.type==='text'?c.text:c.type==='tool_use'?`*[tool: ${c.name||'unknown'}]*`:'').filter(Boolean);
+    const p=m.content.map(c=>c.type==='text'?c.text:c.type==='tool_use'?toolText(c):'').filter(Boolean);
     if(p.length)return p.join('\n\n');
   }
   return m.text||'';
